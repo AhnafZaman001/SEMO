@@ -22,25 +22,22 @@ static file server. There's nothing to compile.
 
 ## Setup (new deployment)
 
+See `SETUP.md` for the full walkthrough. Short version:
+
 1. Create a Supabase project.
-2. Run the SQL files in `supabase/` **in order** (`schema.sql` first,
-   then each numbered migration) via the Supabase SQL Editor.
-3. Update the Supabase URL and anon key in `js/supabase-client.js`
-   to point at your project. The anon key is meant to be public --
-   safe to commit -- access control is enforced server-side via Row
-   Level Security policies, not by hiding this key.
-4. Deploy the repo on Cloudflare Pages (or any static host) -- no
-   build command needed, the output directory is the repo root.
+2. Run `supabase/schema.sql`, then each numbered migration file in
+   order, via the Supabase SQL Editor.
+3. `js/supabase-client.js` already points at this deployment's own
+   Supabase project (not AXIOM's). The anon key embedded there is
+   meant to be public -- safe to commit -- access control is
+   enforced server-side via Row Level Security, not by hiding this key.
+4. Deploy on Cloudflare Pages (or any static host) -- no build
+   command needed, output directory is the repo root.
 
 ## Configuration
 
-Section names, subject lists, and grading streams are defined in a
-single config block near the top of `js/app.js`, kept intentionally
-separate from the rest of the app logic so a new institution's
-class/section structure can be set up by editing just that one place.
-
-## Status
-
-Early setup -- this README will be filled in further as the actual
-institution's requirements, section structure, and subject streams
-are configured.
+Section names, subject lists, and grading streams live in one
+clearly-labeled config block near the top of `js/app.js`
+(`SECTION_DEFS` / `SUBJECT_SETS`), kept deliberately separate from
+the rest of the app logic so this institution's class/section
+structure can be set up by editing just that one place.

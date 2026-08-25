@@ -1,36 +1,29 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
-# dependencies
-/node_modules
-/.pnp
-.pnp.js
-
-# testing
-/coverage
-
-# next.js
-/.next/
-/out/
-
-# production
-/build
-
-# misc
+# OS junk
 .DS_Store
-*.pem
+Thumbs.db
 
-# debug
+# Editor/IDE
+.vscode/
+.idea/
+*.swp
+
+# Local env files -- this project embeds its Supabase URL/anon key
+# directly in js/supabase-client.js (the anon key is meant to be
+# public, same pattern as Future-Pathways/AXIOM), but .env is
+# ignored anyway in case one gets added later for anything else.
+.env
+.env.local
+.env*.local
+
+# Logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# local env files
-.env*.local
-.env
+# Cloudflare Pages
+.wrangler/
 
-# vercel
-.vercel
-
-# typescript
-*.tsbuildinfo
-next-env.d.ts
+# Misc build artifacts (none expected -- this is a static site with
+# no build step -- but harmless to ignore if any tooling adds one later)
+/dist
+/build

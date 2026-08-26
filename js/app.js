@@ -443,6 +443,44 @@ function showToast(message, type, duration){
   setTimeout(()=>{ if(el.parentNode) el.parentNode.removeChild(el); }, duration + 400);
 }
 
+// Brief Section 6.6: the button itself is the save/submit feedback,
+// not a toast. Usage: setBtnState(btn, 'loading') before an async
+// call, then setBtnState(btn, 'success') or setBtnState(btn, 'error',
+// errMessage) when it resolves -- success/error auto-revert to the
+// button's original label after their duration.
+function setBtnState(btn, state, errorMessage){
+  if(!btn) return;
+  if(!btn.dataset.originalLabel) btn.dataset.originalLabel = btn.innerHTML;
+  const original = btn.dataset.originalLabel;
+
+  btn.classList.remove('btn-loading','btn-success','btn-error');
+  btn.setAttribute('aria-busy', 'false');
+
+  if(state === 'loading'){
+    btn.classList.add('btn-loading');
+    btn.setAttribute('aria-busy', 'true');
+    btn.disabled = true;
+    btn.innerHTML = `<span class="btn-spinner"></span>`;
+  } else if(state === 'success'){
+    btn.disabled = false;
+    btn.classList.add('btn-success');
+    btn.innerHTML = `✓ Saved`;
+    setTimeout(()=>{
+      btn.classList.remove('btn-success');
+      btn.innerHTML = original;
+    }, 1500);
+  } else if(state === 'error'){
+    btn.disabled = false;
+    btn.innerHTML = original;
+    btn.classList.add('btn-error');
+    if(errorMessage) showToast(errorMessage, 'error'); // non-button-triggered detail; the shake/border is the primary signal
+    setTimeout(()=>{ btn.classList.remove('btn-error'); }, 350);
+  } else {
+    btn.disabled = false;
+    btn.innerHTML = original;
+  }
+}
+
 function animateCounters(host){
   const els = host.querySelectorAll('[data-count]');
   if(prefersReducedMotion()){
@@ -457,7 +495,7 @@ function animateCounters(host){
     const target = parseFloat(el.getAttribute('data-count'));
     const suffix = el.getAttribute('data-suffix') || '';
     const isFloat = !Number.isInteger(target);
-    const duration = 650;
+    const duration = 400; // brief Section 6.4: counts up over 400ms
     const start = performance.now();
     function step(now){
       const p = Math.min(1, (now-start)/duration);
@@ -1243,11 +1281,23 @@ function renderTable(){
     });
     return `<tr data-sid="${st.id}">${row}</tr>`;
   }).join('');
+  applyRowStagger(body);
 
   renderTransitionCards(def, store);
   renderCharts(def, store);
   renderMovers(def, store);
   renderInsights(def, store);
+}
+
+// Brief Section 6.3: rows appear one after another, 20ms stagger,
+// capped after row 10 ("no one wants to wait" for a long table).
+function applyRowStagger(tbody){
+  if(prefersReducedMotion()) return;
+  const rows = tbody.querySelectorAll('tr');
+  rows.forEach((row, i)=>{
+    row.style.animationDelay = `${Math.min(i, 10) * 20}ms`;
+    row.classList.add('row-enter');
+  });
 }
 
 /* ---- 010_zone-transition-report.js ---- */
@@ -1728,9 +1778,17 @@ function renderCharts(def, store){
     const deltaHtml = d > 0 ? `<span class="delta-tag up">▲+${d}</span>` : d < 0 ? `<span class="delta-tag down">▼${d}</span>` : `<span class="delta-tag flat">·0</span>`;
     compareRowWrap.innerHTML = `<div class="compare-row">
         <span>This section: <b>${classAvgLatest}%</b></span>
-        <div class="cr-bar"><div class="cr-fill" style="width:${Math.min(100,classAvgLatest)}%"></div><div class="cr-fill bench" style="width:${Math.min(100,compareVal)}%"></div></div>
+        <div class="cr-bar"><div class="cr-fill" data-target-width="${Math.min(100,classAvgLatest)}" style="width:0%"></div><div class="cr-fill bench" data-target-width="${Math.min(100,compareVal)}" style="width:0%"></div></div>
         <span>${escapeHtml(compareLabel)}: <b>${compareVal}%</b> ${deltaHtml}</span>
       </div>`;
+    // Brief Section 6.5: bar fills from 0% on mount, not instantly at
+    // final width -- starts at width:0 above, then this triggers the
+    // CSS transition (defined on .compare-row .cr-fill) after a frame.
+    requestAnimationFrame(()=>{
+      compareRowWrap.querySelectorAll('.cr-fill[data-target-width]').forEach(bar=>{
+        bar.style.width = bar.dataset.targetWidth + '%';
+      });
+    });
   }
 
   // ===== Zone distribution: mirrored previous vs latest =====
@@ -3471,16 +3529,13 @@ document.getElementById('nsgSaveBtn').addEventListener('click', async ()=>{
   document.getElementById('nsgLabel').value = '';
   document.getElementById('nsgSubjects').value = '';
 
-  const originalLabel = btn.textContent;
-  btn.disabled = true; btn.textContent = 'Saving…';
+  setBtnState(btn, 'loading');
   try{
     await axAddSubjectGroup(group);
-    showToast(`✓ Subject group "${group.label}" created and synced to the cloud.`, 'success');
+    setBtnState(btn, 'success');
   }catch(err){
     console.error('axAddSubjectGroup failed:', err);
-    showToast(`Group "${group.label}" created on this device, but cloud sync failed: ${err.message || err}`, 'warning');
-  }finally{
-    btn.disabled = false; btn.textContent = originalLabel;
+    setBtnState(btn, 'error', `Group "${group.label}" created on this device, but cloud sync failed: ${err.message || err}`);
   }
 });
 
@@ -3513,16 +3568,13 @@ document.getElementById('nsSaveBtn').addEventListener('click', async ()=>{
   // non principal/coordinator role — enforced by Supabase RLS), the section
   // still works fine on this device, it just won't show up for anyone else
   // until it's re-saved successfully.
-  const originalLabel = btn.textContent;
-  btn.disabled = true; btn.textContent = 'Saving…';
+  setBtnState(btn, 'loading');
   try{
     await axAddSection({ key: def.key, label: def.label, sheetName: def.sheetName, group: def.group });
-    showToast(`✓ Section "${def.sheetName}" added and synced to the cloud.`, 'success');
+    setBtnState(btn, 'success');
   }catch(err){
     console.error('axAddSection failed:', err);
-    showToast(`Section "${def.sheetName}" added on this device, but cloud sync failed: ${err.message || err}`, 'warning');
-  }finally{
-    btn.disabled = false; btn.textContent = originalLabel;
+    setBtnState(btn, 'error', `Section "${def.sheetName}" added on this device, but cloud sync failed: ${err.message || err}`);
   }
 });
 

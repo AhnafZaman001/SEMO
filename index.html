@@ -19,20 +19,61 @@
         <rect x="24" y="0" width="4" height="24" rx="1" style="fill:var(--accent)"/>
       </svg>
     </div>
-    <div class="loading-kicker">AXIOM</div>
+    <div class="loading-kicker">SEMO</div>
     <div class="loading-title">Student Performance Tracker</div>
     <div class="loading-sub" id="loadingStatus">Loading student records…</div>
     <div class="loading-bar"><div class="loading-bar-fill" id="loadingBarFill"></div></div>
   </div>
 </div>
 <div class="toast-stack" id="toastStack" aria-live="polite"></div>
+
+<!-- Sidebar navigation -- brief Section 5: 240px expanded / 60px
+     collapsed, toggle at the bottom, active item gets a left brand
+     border + tinted background. Reuses the exact same button
+     elements/IDs (homeBtn, overallSummaryBtn, sectionSummaryBtn,
+     teacherReportBtn) that used to live in the top toolbar -- their
+     click handlers in app.js (all setActivePage(...) calls) didn't
+     need to change, only where these buttons physically sit moved. -->
+<nav class="sidebar" id="appSidebar">
+  <div class="sidebar-brand">
+    <div class="brand-mark">
+      <svg viewBox="0 0 28 24" width="20" height="18" aria-hidden="true">
+        <rect x="0" y="16" width="4" height="8" rx="1" fill="currentColor"/>
+        <rect x="8" y="11" width="4" height="13" rx="1" fill="currentColor"/>
+        <rect x="16" y="6" width="4" height="18" rx="1" fill="currentColor"/>
+        <rect x="24" y="0" width="4" height="24" rx="1" style="fill:var(--accent)"/>
+      </svg>
+    </div>
+    <span class="sidebar-wordmark nav-label">SEMO</span>
+  </div>
+  <div class="sidebar-nav">
+    <button class="sidebar-nav-item" id="homeBtn" title="Section View" aria-label="Section View">
+      <svg class="icon" viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V20a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V9.5"/></svg>
+      <span class="nav-label">Section View</span>
+    </button>
+    <button class="sidebar-nav-item" id="overallSummaryBtn" title="Cross-section executive dashboard: toppers, section ranking, and smart insights" aria-label="Open Overall Summary">
+      <svg class="icon" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 15v3"/><path d="M12 10v8"/><path d="M17 6v12"/></svg>
+      <span class="nav-label">Overall Summary</span>
+    </button>
+    <button class="sidebar-nav-item" id="sectionSummaryBtn" title="Summary and insights for the currently selected section only" aria-label="Open Section Summary">
+      <svg class="icon" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="m6 14 4-5 3 3 5-7"/></svg>
+      <span class="nav-label">Section Summary</span>
+    </button>
+    <button class="sidebar-nav-item" id="teacherReportBtn" title="See a teacher's performance across all their subjects and sections" aria-label="Open Teacher Report">
+      <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a8 8 0 0 1 16 0v1"/></svg>
+      <span class="nav-label">Teacher Report</span>
+    </button>
+  </div>
+  <button class="sidebar-collapse-btn" id="sidebarCollapseBtn" title="Collapse sidebar" aria-label="Collapse sidebar">
+    <svg class="icon" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
+    <span class="nav-label">Collapse</span>
+  </button>
+</nav>
+
+<div class="main-content" id="mainContent">
 <div class="wrap">
 
   <div class="masthead">
-    <button class="ghost small" id="homeBtn" title="Return to the Section View from anywhere" aria-label="Back to Section View" style="margin-right:14px;">
-      <svg class="icon" viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V20a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V9.5"/></svg>
-      Section View
-    </button>
     <div class="masthead-brand">
       <div class="brand-mark">
         <svg viewBox="0 0 28 24" width="22" height="20" aria-hidden="true">
@@ -215,18 +256,6 @@
     <button class="primary" id="importBtn" title="Import results from an Excel workbook (.xls/.xlsx)" aria-label="Import Excel results">
       <svg class="icon" viewBox="0 0 24 24"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>
       Import Excel Results
-    </button>
-    <button class="ghost" id="overallSummaryBtn" title="Cross-section executive dashboard: toppers, section ranking, and smart insights" aria-label="Open Overall Summary">
-      <svg class="icon" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 15v3"/><path d="M12 10v8"/><path d="M17 6v12"/></svg>
-      Overall Summary
-    </button>
-    <button class="ghost" id="sectionSummaryBtn" title="Summary and insights for the currently selected section only" aria-label="Open Section Summary">
-      <svg class="icon" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="m6 14 4-5 3 3 5-7"/></svg>
-      Section Summary
-    </button>
-    <button class="ghost" id="teacherReportBtn" title="See a teacher's performance across all their subjects and sections" aria-label="Open Teacher Report">
-      <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a8 8 0 0 1 16 0v1"/></svg>
-      Teacher Report
     </button>
     <div class="menu-wrap">
       <button class="ghost" id="addMenuBtn" title="Add or edit a single student or test score" aria-haspopup="true" aria-label="Add menu: add a test score or a student">
@@ -548,6 +577,7 @@
   </div>
 
   <footer id="appFooter">Workspace stored locally on this device / pendrive. No data leaves this browser.</footer>
+</div>
 </div>
 
 <div class="drawer-overlay" id="statListOverlay">

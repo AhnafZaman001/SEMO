@@ -2408,15 +2408,16 @@ function setActivePage(page){
   document.getElementById('actionsToolbar').style.display = page==='section' ? 'flex' : 'none';
   document.getElementById('appFooter').style.display = page==='section' ? 'block' : 'none';
   if(page!=='section') document.getElementById('importPanel').classList.remove('open');
-  document.getElementById('overallSummaryBtn').classList.toggle('primary', page==='overall');
-  document.getElementById('overallSummaryBtn').classList.toggle('ghost', page!=='overall');
-  document.getElementById('overallSummaryBtn').textContent = page==='overall' ? '← Back to Section View' : 'Overall Summary';
-  document.getElementById('sectionSummaryBtn').classList.toggle('primary', page==='sectionSummary');
-  document.getElementById('sectionSummaryBtn').classList.toggle('ghost', page!=='sectionSummary');
-  document.getElementById('sectionSummaryBtn').textContent = page==='sectionSummary' ? '← Back to Section View' : 'Section Summary';
-  document.getElementById('teacherReportBtn').classList.toggle('primary', page==='teacherReport');
-  document.getElementById('teacherReportBtn').classList.toggle('ghost', page!=='teacherReport');
-  document.getElementById('teacherReportBtn').textContent = page==='teacherReport' ? '← Back to Section View' : 'Teacher Report';
+  // Brief Section 5: active sidebar item gets a left brand-color
+  // border + tinted background (the .active class, see CSS) --
+  // these are now persistent icon+label nav items, not toolbar
+  // buttons that swap their own text to "back" when active, so
+  // unlike the old logic this never touches .textContent (doing so
+  // would wipe out each item's icon SVG, since it's a child node).
+  document.getElementById('homeBtn').classList.toggle('active', page==='section');
+  document.getElementById('overallSummaryBtn').classList.toggle('active', page==='overall');
+  document.getElementById('sectionSummaryBtn').classList.toggle('active', page==='sectionSummary');
+  document.getElementById('teacherReportBtn').classList.toggle('active', page==='teacherReport');
   if(page==='overall') renderOverallSummary();
   if(page==='sectionSummary') renderSectionSummary();
   if(page==='teacherReport') renderTeacherReport();
@@ -3844,6 +3845,22 @@ applyTheme(savedTheme);
 document.getElementById('themeToggleBtn').addEventListener('click', ()=>{
   const cur = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
   applyTheme(cur);
+});
+
+// Brief Section 5 + checklist: sidebar expanded/collapsed state
+// persisted to localStorage, same pattern as the theme above.
+let savedSidebarCollapsed = false;
+try{ savedSidebarCollapsed = localStorage.getItem('spl-sidebar-collapsed') === '1'; }catch(e){ /* storage unavailable */ }
+function applySidebarCollapsed(collapsed){
+  document.body.classList.toggle('sidebar-collapsed', collapsed);
+  const btn = document.getElementById('sidebarCollapseBtn');
+  if(btn) btn.setAttribute('aria-label', collapsed ? 'Expand sidebar' : 'Collapse sidebar');
+  if(btn) btn.title = collapsed ? 'Expand sidebar' : 'Collapse sidebar';
+  try{ localStorage.setItem('spl-sidebar-collapsed', collapsed ? '1' : '0'); }catch(e){ /* storage unavailable, state just won't persist */ }
+}
+applySidebarCollapsed(savedSidebarCollapsed);
+document.getElementById('sidebarCollapseBtn').addEventListener('click', ()=>{
+  applySidebarCollapsed(!document.body.classList.contains('sidebar-collapsed'));
 });
 
 populateSectionSelects();

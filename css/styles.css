@@ -66,7 +66,73 @@
   *{box-sizing:border-box;}
   body{margin:0;background:var(--paper);
     color:var(--ink);font-family:var(--font-body);-webkit-font-smoothing:antialiased;letter-spacing:-0.005em;}
+  .main-content{margin-left:240px;transition:margin-left 200ms var(--ease-out);}
+  body.sidebar-collapsed .main-content{margin-left:60px;}
   .wrap{max-width:1280px;margin:0 auto;padding:24px 24px 110px;position:relative;z-index:1;}
+
+  /* Sidebar navigation -- brief Section 5. Fixed left column, 240px
+     expanded / 60px collapsed (persisted to localStorage, see
+     sidebar init in app.js), toggle at the bottom. Active item gets
+     a left brand-color border + 8% tinted background, matching the
+     brief's exact spec rather than the ghost/primary button classes
+     used elsewhere -- this is real navigation state, not a toggle. */
+  .sidebar{
+    position:fixed;top:0;left:0;bottom:0;width:240px;z-index:80;
+    background:var(--paper-raised);border-right:1px solid var(--line);
+    display:flex;flex-direction:column;
+    transition:width 200ms var(--ease-out);
+    overflow:hidden;
+  }
+  body.sidebar-collapsed .sidebar{width:60px;}
+  .sidebar-brand{display:flex;align-items:center;gap:10px;padding:18px 16px;border-bottom:1px solid var(--line);flex:none;}
+  .sidebar-brand .brand-mark{width:32px;height:32px;flex:none;}
+  .sidebar-wordmark{font-family:var(--font-display);font-weight:700;font-size:0.9rem;letter-spacing:0.12em;color:var(--ink);white-space:nowrap;}
+  .sidebar-nav{flex:1;overflow-y:auto;padding:10px 0;}
+  .sidebar-nav-item{
+    display:flex;align-items:center;gap:12px;width:100%;
+    padding:11px 16px 11px 17px;border:none;background:transparent;
+    border-left:3px solid transparent;border-radius:0;
+    font-family:var(--font-body);font-size:0.84rem;font-weight:500;color:var(--ink-soft);
+    cursor:pointer;white-space:nowrap;text-align:left;
+    transition:background 80ms var(--ease-out),color 80ms var(--ease-out),border-color 80ms var(--ease-out);
+  }
+  .sidebar-nav-item .icon{flex:none;}
+  .sidebar-nav-item:hover{background:rgba(225,29,72,0.05);color:var(--ink);transform:none;box-shadow:none;}
+  .sidebar-nav-item.active{
+    border-left-color:var(--accent);
+    background:rgba(225,29,72,0.08);
+    color:var(--ink);font-weight:600;
+  }
+  .sidebar-collapse-btn{
+    display:flex;align-items:center;gap:10px;width:100%;flex:none;
+    padding:13px 16px;border:none;border-top:1px solid var(--line);
+    background:transparent;font-family:var(--font-body);font-size:0.78rem;
+    color:var(--muted);cursor:pointer;white-space:nowrap;text-align:left;
+  }
+  .sidebar-collapse-btn:hover{background:var(--surface-1);color:var(--ink);transform:none;}
+  .sidebar-collapse-btn .icon{flex:none;transition:transform 200ms var(--ease-out);}
+  body.sidebar-collapsed .sidebar-collapse-btn .icon{transform:rotate(180deg);}
+
+  /* Labels fade out on collapse (100ms), fade back in on expand --
+     brief Section 6.8's exact timing for the nav-label transition. */
+  .sidebar .nav-label{transition:opacity 100ms;opacity:1;}
+  body.sidebar-collapsed .sidebar .nav-label{opacity:0;pointer-events:none;}
+  body.sidebar-collapsed .sidebar-brand{gap:0;}
+  body.sidebar-collapsed .sidebar-nav-item{justify-content:center;padding-left:0;padding-right:0;}
+  body.sidebar-collapsed .sidebar-collapse-btn{justify-content:center;padding-left:0;padding-right:0;}
+
+  @media (prefers-reduced-motion: reduce){
+    .sidebar, .main-content, .sidebar .nav-label, .sidebar-collapse-btn .icon{transition:none;}
+  }
+
+  /* Focus Mode already said 'hide navigation/sidebars' in its own
+     comment before this sidebar existed -- now it actually applies.
+     Presentation Mode deliberately keeps the sidebar, since being
+     able to switch between Overall Summary / Section Summary /
+     Teacher Report live during a board meeting is the point. */
+  body.focus-mode .sidebar{display:none;}
+  body.focus-mode .main-content{margin-left:0;}
+
 
   /* Tabular numerals everywhere a score/number appears, so digits
      don't jump column widths as values change -- brief Section 3. */

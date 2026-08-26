@@ -3687,7 +3687,7 @@ document.getElementById('workspaceFileInput').addEventListener('change', (e)=>{
 
 /* ===================== INIT ===================== */
 let savedTheme = 'light';
-try{ savedTheme = localStorage.getItem('spl-theme') || 'dark'; }catch(e){ /* storage unavailable */ }
+try{ savedTheme = localStorage.getItem('spl-theme') || 'light'; }catch(e){ /* storage unavailable */ }
 applyTheme(savedTheme);
 document.getElementById('themeToggleBtn').addEventListener('click', ()=>{
   const cur = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';

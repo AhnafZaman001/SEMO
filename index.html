@@ -389,15 +389,25 @@
   <div class="panel" id="addSectionPanel">
     <h3>Add Section</h3>
     <div class="panel-row">
-      <div class="field"><label>Section / Sheet Name</label><input type="text" id="nsName" placeholder="e.g. F17 or F16 (PM)" style="width:200px;"></div>
+      <div class="field"><label>Section / Sheet Name</label><input type="text" id="nsName" placeholder="e.g. F17 or 9-A" style="width:200px;"></div>
       <div class="field">
         <label>Subject Group</label>
-        <select id="nsGroup">
-          <option value="PM">Pre-Medical</option>
-          <option value="PE">Pre-Engineering</option>
-          <option value="ICS">ICS</option>
-          <option value="ICOM">I.Com</option>
-        </select>
+        <select id="nsGroup"></select>
+      </div>
+    </div>
+    <div id="nsNewGroupToggle" class="hint" style="cursor:pointer;text-decoration:underline;margin-top:2px;">+ Create a new subject group</div>
+    <div id="nsNewGroupForm" style="display:none;margin-top:10px;padding:12px 14px;border:1px solid var(--line);border-radius:10px;background:var(--surface-1);">
+      <div class="panel-row">
+        <div class="field" style="flex:1;min-width:180px;"><label>Group Name</label><input type="text" id="nsgLabel" placeholder="e.g. Science, Commerce, Pre-Medical" style="width:100%;"></div>
+      </div>
+      <div class="field">
+        <label>Subjects (comma-separated)</label>
+        <input type="text" id="nsgSubjects" placeholder="e.g. Physics, Chemistry, Math, English" style="width:100%;">
+      </div>
+      <div class="hint">This becomes a reusable stream — any future section can be assigned to it too.</div>
+      <div class="panel-row" style="margin-top:8px;">
+        <button class="ghost small" id="nsgSaveBtn" type="button">Create Group</button>
+        <button class="ghost small" id="nsgCancelBtn" type="button">Cancel</button>
       </div>
     </div>
     <div class="hint">The name should match the sheet name used in Excel imports for this section.</div>
@@ -410,19 +420,15 @@
   <!-- Rename section panel -->
   <div class="panel" id="renameSectionPanel">
     <h3>Rename / Reclassify Section</h3>
+    <div class="hint" id="rsStrengthHint" style="margin-bottom:8px;"></div>
     <div class="panel-row">
-      <div class="field"><label>New Section / Sheet Name</label><input type="text" id="rsName" placeholder="e.g. F17 or F16 (PM)" style="width:220px;"></div>
+      <div class="field"><label>New Section / Sheet Name</label><input type="text" id="rsName" placeholder="e.g. F17 or 9-A" style="width:220px;"></div>
       <div class="field">
         <label>Subject Group</label>
-        <select id="rsGroup">
-          <option value="PM">Pre-Medical</option>
-          <option value="PE">Pre-Engineering</option>
-          <option value="ICS">ICS</option>
-          <option value="ICOM">I.Com</option>
-        </select>
+        <select id="rsGroup"></select>
       </div>
     </div>
-    <div class="hint">All students and test scores in this section are kept — only the name/label and which subjects apply change. Use Subject Group to fix a section that was created with the wrong group (e.g. an "ICS" section that was accidentally set up as Pre-Medical).</div>
+    <div class="hint">All students and test scores in this section are kept — only the name/label and which subjects apply change. Use Subject Group to fix a section that was created under the wrong group.</div>
     <div class="panel-row">
       <button class="primary" id="rsSaveBtn">Save</button>
       <button class="ghost" id="rsCancelBtn">Cancel</button>

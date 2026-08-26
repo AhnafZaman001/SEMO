@@ -81,6 +81,39 @@ function uniqueSectionKey(baseKey){
 // Creates a new section, adds it to SECTION_DEFS/SECTION_BY_KEY/SHEETNAME_TO_KEY,
 // and returns the new definition. Throws a plain Error with a user-facing
 // message if the name is missing/duplicate or the group is unknown.
+// Registers a subject group that exists in the cloud `subject_groups`
+// table but isn't known locally yet -- same purpose as
+// registerCloudSectionDef below, just for groups instead of sections.
+// Must run BEFORE registerCloudSectionDef for every cloud section's
+// group to already be known when that section gets registered (see
+// the call order in auth-guard.js).
+function registerCloudSubjectGroup({ key, label, subjects }){
+  if(!key || GROUP_LABELS[key]) return; // already known locally, nothing to do
+  GROUP_LABELS[key] = label || key;
+  SUBJECT_SETS[key] = Array.isArray(subjects) ? subjects : [];
+}
+
+// Creates a new custom subject group locally (GROUP_LABELS/
+// SUBJECT_SETS are mutated in place, same pattern as SECTION_DEFS
+// elsewhere in this file). Throws a plain Error with a user-facing
+// message on invalid input.
+function addSubjectGroupDef(label, subjectsList){
+  label = String(label||'').trim();
+  if(!label) throw new Error('Enter a name for this subject group.');
+  const subjects = (subjectsList||[]).map(s=>String(s||'').trim()).filter(Boolean);
+  if(!subjects.length) throw new Error('Add at least one subject.');
+  const key = uniqueSubjectGroupKey(slugifySectionKey(label));
+  GROUP_LABELS[key] = label;
+  SUBJECT_SETS[key] = subjects;
+  return { key, label, subjects };
+}
+function uniqueSubjectGroupKey(baseKey){
+  let key = baseKey || 'GRP';
+  let n = 2;
+  while(GROUP_LABELS[key]){ key = (baseKey||'GRP') + n; n++; }
+  return key;
+}
+
 // Registers a section that exists in the cloud `sections` table but isn't
 // in this build's hardcoded SECTION_DEFS yet — i.e. it was added from
 // another device/login. Called once per row right after loading from
@@ -3391,17 +3424,74 @@ document.getElementById('confirmOkBtn').addEventListener('click', ()=>{
   if(cb) cb();
 });
 
+/* ---- Add/Rename Section: subject group dropdowns ----
+   Populated dynamically from GROUP_LABELS (no fixed set of streams
+   assumed) -- called on init and every time a new group is created,
+   so both dropdowns always reflect the current list. */
+function populateGroupSelects(){
+  const opts = Object.keys(GROUP_LABELS).map(k=>`<option value="${k}">${escapeHtml(GROUP_LABELS[k])}</option>`).join('');
+  const ns = document.getElementById('nsGroup');
+  const rs = document.getElementById('rsGroup');
+  if(ns) ns.innerHTML = opts;
+  if(rs) rs.innerHTML = opts;
+}
+
 /* ---- Add Section ---- */
 document.getElementById('addSectionBtn').addEventListener('click', ()=>{
   togglePanel('addSectionPanel');
   document.getElementById('nsName').value = '';
-  document.getElementById('nsGroup').value = 'PM';
+  populateGroupSelects();
+  document.getElementById('nsNewGroupForm').style.display = 'none';
+  document.getElementById('nsgLabel').value = '';
+  document.getElementById('nsgSubjects').value = '';
 });
 document.getElementById('nsCancelBtn').addEventListener('click', ()=>document.getElementById('addSectionPanel').classList.remove('open'));
+
+document.getElementById('nsNewGroupToggle').addEventListener('click', ()=>{
+  const form = document.getElementById('nsNewGroupForm');
+  form.style.display = form.style.display === 'none' ? 'block' : 'none';
+});
+document.getElementById('nsgCancelBtn').addEventListener('click', ()=>{
+  document.getElementById('nsNewGroupForm').style.display = 'none';
+});
+document.getElementById('nsgSaveBtn').addEventListener('click', async ()=>{
+  const label = document.getElementById('nsgLabel').value.trim();
+  const subjects = document.getElementById('nsgSubjects').value.split(',').map(s=>s.trim()).filter(Boolean);
+  const btn = document.getElementById('nsgSaveBtn');
+  let group;
+  try{
+    group = addSubjectGroupDef(label, subjects);
+  }catch(err){
+    showToast(err.message, 'warning');
+    return;
+  }
+  populateGroupSelects();
+  document.getElementById('nsGroup').value = group.key;
+  document.getElementById('nsNewGroupForm').style.display = 'none';
+  document.getElementById('nsgLabel').value = '';
+  document.getElementById('nsgSubjects').value = '';
+
+  const originalLabel = btn.textContent;
+  btn.disabled = true; btn.textContent = 'Saving…';
+  try{
+    await axAddSubjectGroup(group);
+    showToast(`✓ Subject group "${group.label}" created and synced to the cloud.`, 'success');
+  }catch(err){
+    console.error('axAddSubjectGroup failed:', err);
+    showToast(`Group "${group.label}" created on this device, but cloud sync failed: ${err.message || err}`, 'warning');
+  }finally{
+    btn.disabled = false; btn.textContent = originalLabel;
+  }
+});
+
 document.getElementById('nsSaveBtn').addEventListener('click', async ()=>{
   const name = document.getElementById('nsName').value.trim();
   const group = document.getElementById('nsGroup').value;
   const btn = document.getElementById('nsSaveBtn');
+  if(!group){
+    showToast('Create a subject group first (use "+ Create a new subject group" above).', 'warning');
+    return;
+  }
   let def;
   try{
     def = addSectionDef(name, group);
@@ -3475,9 +3565,15 @@ document.getElementById('deleteSectionBtn').addEventListener('click', ()=>{
 /* ---- Rename Section ---- */
 document.getElementById('renameSectionBtn').addEventListener('click', ()=>{
   togglePanel('renameSectionPanel');
+  populateGroupSelects();
+  const key = currentSectionKey();
   const def = currentSectionDef();
   document.getElementById('rsName').value = def ? def.sheetName : '';
-  document.getElementById('rsGroup').value = def ? def.group : 'PM';
+  document.getElementById('rsGroup').value = def ? def.group : '';
+  const store = workspace.sections[key];
+  const studentCount = store ? store.students.length : 0;
+  document.getElementById('rsStrengthHint').innerHTML =
+    `Current strength: <b>${studentCount}</b> student${studentCount===1?'':'s'} in this section.`;
 });
 document.getElementById('rsCancelBtn').addEventListener('click', ()=>document.getElementById('renameSectionPanel').classList.remove('open'));
 document.getElementById('rsSaveBtn').addEventListener('click', async ()=>{

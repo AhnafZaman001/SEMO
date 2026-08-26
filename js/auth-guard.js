@@ -17,10 +17,10 @@
     who.style.cssText = 'display:flex;align-items:center;gap:10px;';
     who.innerHTML = `
       <div style="text-align:right;">
-        <div style="font-size:0.82rem;font-weight:700;color:#fff;">${escapeHtmlSafe(profile.full_name)}</div>
-        <div style="font-size:0.68rem;color:rgba(255,255,255,0.65);text-transform:capitalize;">${escapeHtmlSafe(profile.role)}</div>
+        <div style="font-size:0.82rem;font-weight:700;color:var(--ink);">${escapeHtmlSafe(profile.full_name)}</div>
+        <div style="font-size:0.68rem;color:var(--muted);text-transform:capitalize;">${escapeHtmlSafe(profile.role)}</div>
       </div>
-      <button class="ghost small" id="logoutBtn" style="background:rgba(255,255,255,0.08);border-color:rgba(255,255,255,0.16);color:#fff;">Log Out</button>
+      <button class="ghost small" id="logoutBtn">Log Out</button>
     `;
     actionsWrap.prepend(who);
     document.getElementById('logoutBtn').addEventListener('click', axSignOut);
@@ -62,9 +62,13 @@
     return;
   }
 
-  // Any section that was added from another device/login won't be in this
-  // build's hardcoded SECTION_DEFS yet — register it now, before the
-  // dropdowns/subject filters below get populated from SECTION_DEFS.
+  // Any subject group or section that was added from another device/login
+  // (or, for a brand-new school, everything) won't be in this build's
+  // in-memory GROUP_LABELS/SUBJECT_SETS/SECTION_DEFS yet — register it now,
+  // before the dropdowns/subject filters below get populated. Groups must
+  // be registered before sections, since a section references its group.
+  (workspace._cloudSubjectGroups || []).forEach(registerCloudSubjectGroup);
+  delete workspace._cloudSubjectGroups;
   (workspace._cloudSections || []).forEach(registerCloudSectionDef);
   delete workspace._cloudSections;
 

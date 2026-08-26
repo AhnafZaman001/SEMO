@@ -48,8 +48,9 @@ async function axRequireAuth() {
 // workspace = { sections: { [sectionKey]: { students: [ {id,name,rollNo,matric,tests:{ [subject]: [ {test,date,obtained,max,percent,absent,position} ] } } ] } }, teacherOverrides: {} }
 
 async function axLoadWorkspaceFromSupabase() {
-  const [{ data: sections }, { data: students }, { data: tests }, { data: assignments }] = await Promise.all([
+  const [{ data: sections }, { data: subjectGroups }, { data: students }, { data: tests }, { data: assignments }] = await Promise.all([
     supabaseClient.from('sections').select('*'),
+    supabaseClient.from('subject_groups').select('*'),
     supabaseClient.from('students').select('*'),
     supabaseClient.from('tests').select('*'),
     supabaseClient.from('teacher_assignments').select('*'),
@@ -58,10 +59,14 @@ async function axLoadWorkspaceFromSupabase() {
   const workspace = { sections: {}, sectionRenames: {}, teacherOverrides: {} };
 
   (sections || []).forEach(sec => { workspace.sections[sec.key] = { students: [] }; });
-  // Raw section metadata (not just the student/test container above) — used
-  // by app.js to register any section that exists in the cloud but isn't
-  // one of the hardcoded SECTION_DEFS baked into this build yet.
+  // Raw section/subject-group metadata (not just the student/test
+  // container above) — used by app.js to register anything that
+  // exists in the cloud but isn't known locally yet (added from
+  // another device/login, or this is a fresh school with nothing
+  // hardcoded at all). Subject groups are registered first, since
+  // sections reference them.
   workspace._cloudSections = sections || [];
+  workspace._cloudSubjectGroups = subjectGroups || [];
 
   const testsByStudent = {};
   (tests || []).forEach(t => {
@@ -125,6 +130,17 @@ async function axAddSection({ key, label, sheetName, group }) {
   const { error } = await supabaseClient
     .from('sections')
     .insert({ key, label, sheet_name: sheetName, subject_group: group });
+  if (error) throw error;
+}
+
+// Creates a new custom subject group (a named stream with its own
+// subject list, e.g. "Science" -> ["Physics","Chemistry","Math"]) --
+// the admin-configurable replacement for what used to be a fixed set
+// of 4 hardcoded streams.
+async function axAddSubjectGroup({ key, label, subjects }) {
+  const { error } = await supabaseClient
+    .from('subject_groups')
+    .insert({ key, label, subjects });
   if (error) throw error;
 }
 

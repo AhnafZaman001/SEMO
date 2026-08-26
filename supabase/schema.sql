@@ -32,7 +32,19 @@ create table sections (
   key text primary key,       -- matches the app's sectionKey, e.g. "9A"
   label text not null,        -- full display label, e.g. "F1A — Pre-Medical"
   sheet_name text,            -- just the section name part, e.g. "F1A" (matches workbook sheet names)
-  subject_group text          -- one of PM / PE / ICS / ICOM — picks the subject list on other devices
+  subject_group text          -- references subject_groups.key -- picks the subject list on other devices
+);
+
+-- ---------- 3b. SUBJECT GROUPS ----------
+-- Named streams (e.g. "Pre-Medical", "Science", "Commerce" -- whatever
+-- this school actually calls them), each with its own subject list.
+-- Fully admin-configurable via the Add Section popup's "Create new
+-- group" flow -- no fixed set of streams is assumed, since every
+-- school's subject streams are different.
+create table subject_groups (
+  key      text primary key,
+  label    text not null,
+  subjects text[] not null
 );
 
 -- ---------- 4. STUDENTS ----------
@@ -90,6 +102,7 @@ create trigger tests_set_updated_at
 
 alter table profiles enable row level security;
 alter table sections enable row level security;
+alter table subject_groups enable row level security;
 alter table students enable row level security;
 alter table teacher_assignments enable row level security;
 alter table tests enable row level security;
@@ -129,6 +142,14 @@ create policy "sections: everyone logged in can read"
   on sections for select using (auth.uid() is not null);
 create policy "sections: principal/coordinator can write"
   on sections for all using (
+    public.current_profile_role() in ('principal','coordinator')
+  );
+
+-- ---- subject_groups ----
+create policy "subject_groups: everyone logged in can read"
+  on subject_groups for select using (auth.uid() is not null);
+create policy "subject_groups: principal/coordinator can write"
+  on subject_groups for all using (
     public.current_profile_role() in ('principal','coordinator')
   );
 

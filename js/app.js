@@ -1127,6 +1127,12 @@ let currentTeacherRestriction = null;
 // that isn't theirs. Falls back to the full list if the restriction would
 // otherwise leave nothing to show (e.g. reassigned away from every subject).
 function visibleSubjectsFor(def){
+  // Defensive guard, not just for renderTable()'s own early return above --
+  // several other entry points call this too (chart/report subject
+  // dropdowns, teacher-restriction filtering), and this is cheap
+  // insurance against any of them being reachable with no section
+  // selected. Empty subject list is a safe, sane default either way.
+  if(!def) return [];
   if(!currentTeacherRestriction) return def.subjects;
   const mine = def.subjects.filter(s=>lookupTeacher(s, def) === currentTeacherRestriction);
   return mine.length ? mine : def.subjects;
@@ -1184,11 +1190,28 @@ function subjectClassAverage(store, subj){
 
 function renderTable(){
   const def = currentSectionDef();
+  const tableSection = document.getElementById('tableSection');
+  const emptyState = document.getElementById('emptyState');
+
+  // No sections exist yet at all (a brand-new school, before anyone
+  // has used "Add Section") -- currentSectionDef() returns undefined
+  // in this case since sectionSelect has no options to select from.
+  // Every function below this point assumes a valid def, so this has
+  // to return early rather than let e.g. ensureSection(def.key) throw
+  // on undefined and leave the app stuck on the loading screen.
+  if(!def){
+    tableSection.style.display='none'; emptyState.style.display='block';
+    emptyState.innerHTML = `<div class="es-icon"><svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M9 3v18"/></svg></div><h3>No sections yet</h3><div>This is a fresh setup with nothing configured. Add your first section (and a subject group, if you haven't got one) to get started.</div><div style="margin-top:16px;"><button class="primary" onclick="document.getElementById('addSectionBtn').click()">Add Section</button></div>`;
+    document.getElementById('heroStrip').innerHTML = '';
+    document.getElementById('transitionCardsWrap').innerHTML='';
+    document.getElementById('moversWrap').innerHTML='';
+    document.getElementById('insightsWrap').innerHTML='';
+    return;
+  }
+
   const store = ensureSection(def.key);
   const head = document.getElementById('tableHeadRow');
   const body = document.getElementById('tableBody');
-  const tableSection = document.getElementById('tableSection');
-  const emptyState = document.getElementById('emptyState');
 
   const subjFilter = document.getElementById('subjectFilter').value;
   const zoneFilterVal = document.getElementById('zoneFilter').value;
@@ -2901,6 +2924,16 @@ function renderSSRoster(){
 
   const def = SECTION_BY_KEY[ssRosterState.sectionKey];
   const subjSel = document.getElementById('ssRSubject');
+  // No sections exist yet -- def is undefined. Leave the subject
+  // dropdown/roster empty rather than crash on def.subjects; the
+  // Section Summary page itself isn't reachable without a section
+  // selected anyway (see setActivePage()'s own guards), but this
+  // still runs unconditionally as part of the main init sequence.
+  if(!def){
+    subjSel.innerHTML = `<option value="">All Subjects</option>`;
+    document.getElementById('ssRTableBody').innerHTML = '';
+    return;
+  }
   subjSel.innerHTML = `<option value="">All Subjects</option>` + def.subjects.map(s=>`<option value="${s}">${s}</option>`).join('');
   if(!def.subjects.includes(ssRosterState.subjFilter)) ssRosterState.subjFilter = '';
   subjSel.value = ssRosterState.subjFilter;

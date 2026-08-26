@@ -3533,19 +3533,29 @@ document.getElementById('confirmOkBtn').addEventListener('click', ()=>{
    assumed) -- called on init and every time a new group is created,
    so both dropdowns always reflect the current list. */
 function populateGroupSelects(){
-  const opts = Object.keys(GROUP_LABELS).map(k=>`<option value="${k}">${escapeHtml(GROUP_LABELS[k])}</option>`).join('');
+  const hasGroups = Object.keys(GROUP_LABELS).length > 0;
+  const opts = hasGroups
+    ? Object.keys(GROUP_LABELS).map(k=>`<option value="${k}">${escapeHtml(GROUP_LABELS[k])}</option>`).join('')
+    // A genuinely empty dropdown (no options at all) reads as broken --
+    // this makes the "nothing exists yet" state explicit instead.
+    : `<option value="" disabled selected>— No subject groups yet —</option>`;
   const ns = document.getElementById('nsGroup');
   const rs = document.getElementById('rsGroup');
   if(ns) ns.innerHTML = opts;
   if(rs) rs.innerHTML = opts;
+  return hasGroups;
 }
 
 /* ---- Add Section ---- */
 document.getElementById('addSectionBtn').addEventListener('click', ()=>{
   togglePanel('addSectionPanel');
   document.getElementById('nsName').value = '';
-  populateGroupSelects();
-  document.getElementById('nsNewGroupForm').style.display = 'none';
+  const hasGroups = populateGroupSelects();
+  // When there are genuinely zero subject groups yet (a brand new
+  // school), creating one is the only possible next step -- open
+  // that form automatically instead of leaving it as an easy-to-miss
+  // link next to a dropdown that otherwise looks broken/empty.
+  document.getElementById('nsNewGroupForm').style.display = hasGroups ? 'none' : 'block';
   document.getElementById('nsgLabel').value = '';
   document.getElementById('nsgSubjects').value = '';
 });

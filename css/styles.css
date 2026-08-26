@@ -455,6 +455,14 @@
   @keyframes rowEnter{from{opacity:0;transform:translateY(6px);} to{opacity:1;transform:translateY(0);}}
   @media (prefers-reduced-motion: reduce){ .row-enter{animation:none;} }
 
+  /* Page/view transitions -- brief Section 6.1: applied when
+     switching between Section View, Overall Summary, Section
+     Summary, and Teacher Report (see setActivePage() in app.js) --
+     the closest thing this app has to distinct navigable views. */
+  .page-enter{animation:pageEnter 200ms var(--ease-out) forwards;}
+  @keyframes pageEnter{from{opacity:0;transform:translateY(12px);} to{opacity:1;transform:translateY(0);}}
+  @media (prefers-reduced-motion: reduce){ .page-enter{animation:none;} }
+
   /* Student avatar initials -- flat institutional tones instead of
      glossy rainbow gradients, one shared restrained shadow. */
   .avatar-initials{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;

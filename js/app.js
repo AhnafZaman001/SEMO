@@ -2387,6 +2387,18 @@ function setActivePage(page){
   document.getElementById('sectionSummaryPage').style.display = page==='sectionSummary' ? 'block' : 'none';
   document.getElementById('teacherReportPage').style.display = page==='teacherReport' ? 'block' : 'none';
   document.getElementById('sectionViewPage').style.display = page==='section' ? 'block' : 'none';
+  // Brief Section 6.1: the page being switched TO slides up + fades
+  // in (200ms). The brief's own CSS sample only defines the incoming
+  // animation, not a coordinated old-view fade-out, so that's what's
+  // implemented here -- these pages are separate DOM containers
+  // toggled via display:none, not a shared crossfade surface.
+  const shownPageId = { section:'sectionViewPage', overall:'overallSummaryPage', sectionSummary:'sectionSummaryPage', teacherReport:'teacherReportPage' }[page];
+  const shownEl = shownPageId && document.getElementById(shownPageId);
+  if(shownEl && !prefersReducedMotion()){
+    shownEl.classList.remove('page-enter');
+    void shownEl.offsetWidth; // restart animation
+    shownEl.classList.add('page-enter');
+  }
   document.getElementById('heroStrip').style.display = page==='section' ? 'grid' : 'none';
   document.getElementById('importBtn').style.display = page==='section' ? '' : 'none';
   // Report pages (overall/sectionSummary/teacherReport) are self-contained —

@@ -3,14 +3,22 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AXIOM — Student Performance Tracker</title>
+<title>SEMO | Student Performance Tracker</title>
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
 <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
 <div class="bg-animated" aria-hidden="true"><span class="b1"></span><span class="b2"></span><span class="b3"></span></div>
 <div id="loadingScreen" class="loading-screen">
   <div class="loading-inner">
-    <div class="loading-mark"><span>L</span></div>
+    <div class="loading-mark">
+      <svg viewBox="0 0 28 24" width="32" height="28" aria-hidden="true">
+        <rect x="0" y="16" width="4" height="8" rx="1" fill="currentColor"/>
+        <rect x="8" y="11" width="4" height="13" rx="1" fill="currentColor"/>
+        <rect x="16" y="6" width="4" height="18" rx="1" fill="currentColor"/>
+        <rect x="24" y="0" width="4" height="24" rx="1" style="fill:var(--accent)"/>
+      </svg>
+    </div>
     <div class="loading-kicker">AXIOM</div>
     <div class="loading-title">Student Performance Tracker</div>
     <div class="loading-sub" id="loadingStatus">Loading student records…</div>
@@ -26,9 +34,16 @@
       Section View
     </button>
     <div class="masthead-brand">
-      <div class="brand-mark"><span>L</span></div>
+      <div class="brand-mark">
+        <svg viewBox="0 0 28 24" width="22" height="20" aria-hidden="true">
+          <rect x="0" y="16" width="4" height="8" rx="1" fill="currentColor"/>
+          <rect x="8" y="11" width="4" height="13" rx="1" fill="currentColor"/>
+          <rect x="16" y="6" width="4" height="18" rx="1" fill="currentColor"/>
+          <rect x="24" y="0" width="4" height="24" rx="1" style="fill:var(--accent)"/>
+        </svg>
+      </div>
       <div>
-        <div class="brand-kicker">AXIOM</div>
+        <div class="brand-kicker">SEMO</div>
         <h1 id="appTitle">Student Performance Tracker</h1>
         <div class="sub">Track progress. Discover trends. Improve results.</div>
       </div>

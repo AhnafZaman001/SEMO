@@ -3648,15 +3648,13 @@ document.getElementById('rsSaveBtn').addEventListener('click', async ()=>{
   document.getElementById('renameSectionPanel').classList.remove('open');
 
   const originalLabel = btn.textContent;
-  btn.disabled = true; btn.textContent = 'Saving…';
+  setBtnState(btn, 'loading');
   try{
     await axUpdateSectionMeta({ key, label: def.label, sheetName: def.sheetName, group: def.group });
-    showToast(`✓ Section renamed to "${def.sheetName}" (${GROUP_LABELS[def.group]}) and synced to the cloud.`, 'success');
+    setBtnState(btn, 'success');
   }catch(err){
     console.error('axUpdateSectionMeta failed:', err);
-    showToast(`Renamed on this device, but cloud sync failed: ${err.message || err}`, 'warning');
-  }finally{
-    btn.disabled = false; btn.textContent = originalLabel;
+    setBtnState(btn, 'error', `Renamed on this device, but cloud sync failed: ${err.message || err}`);
   }
 });
 
@@ -3783,16 +3781,13 @@ document.getElementById('mtSaveBtn').addEventListener('click', async ()=>{
 
   // Push the assignment to the cloud too (principal/coordinator only —
   // enforced by Supabase RLS). Local change already stuck either way.
-  const originalLabel = btn.textContent;
-  btn.disabled = true; btn.textContent = 'Saving…';
+  setBtnState(btn, 'loading');
   try{
     await axSetTeacherAssignment({ sectionKey, subject, teacherName: name });
-    showToast(name ? `✓ ${name} assigned to ${subject} in ${def.sheetName} and synced to the cloud.` : `✓ Teacher cleared for ${subject} in ${def.sheetName} and synced to the cloud.`, 'success');
+    setBtnState(btn, 'success');
   }catch(err){
     console.error('axSetTeacherAssignment failed:', err);
-    showToast(`Saved on this device, but cloud sync failed: ${err.message || err}`, 'warning');
-  }finally{
-    btn.disabled = false; btn.textContent = originalLabel;
+    setBtnState(btn, 'error', `Saved on this device, but cloud sync failed: ${err.message || err}`);
   }
 });
 document.getElementById('mtClearBtn').addEventListener('click', async ()=>{
@@ -3808,16 +3803,13 @@ document.getElementById('mtClearBtn').addEventListener('click', async ()=>{
 
   if(typeof teacherReportOpen !== 'undefined' && teacherReportOpen) renderTeacherReport();
 
-  const originalLabel = btn.textContent;
-  btn.disabled = true; btn.textContent = 'Clearing…';
+  setBtnState(btn, 'loading');
   try{
     await axDeleteTeacherAssignment({ sectionKey, subject });
-    showToast(`Reset "${subject}" in ${def.sheetName} to the default roster and synced to the cloud.`, 'success');
+    setBtnState(btn, 'success');
   }catch(err){
     console.error('axDeleteTeacherAssignment failed:', err);
-    showToast(`Reset on this device, but cloud sync failed: ${err.message || err}`, 'warning');
-  }finally{
-    btn.disabled = false; btn.textContent = originalLabel;
+    setBtnState(btn, 'error', `Reset on this device, but cloud sync failed: ${err.message || err}`);
   }
 });
 document.getElementById('mtCancelBtn').addEventListener('click', ()=>document.getElementById('manageTeacherPanel').classList.remove('open'));

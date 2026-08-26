@@ -101,7 +101,7 @@
     display:flex;align-items:center;justify-content:center;position:relative;box-shadow:none;}
   .brand-mark::before{display:none;}
   .brand-mark span{font-family:var(--font-display);font-size:1.1rem;font-weight:700;color:var(--ink);}
-  .brand-kicker{font-size:0.66rem;letter-spacing:2.4px;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:3px;}
+  .brand-kicker{font-family:var(--font-display);font-size:0.78rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--ink);margin-bottom:3px;}
   .status-line{font-family:var(--font-body);font-size:0.75rem;color:var(--muted);text-align:right;font-weight:500;}
   .status-line .dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--green);margin-right:6px;box-shadow:none;}
   .status-line.unsaved .dot{background:var(--red);box-shadow:none;}

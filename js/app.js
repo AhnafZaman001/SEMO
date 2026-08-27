@@ -3639,23 +3639,26 @@ document.getElementById('deleteSectionBtn').addEventListener('click', ()=>{
   const key = currentSectionKey();
   const def = SECTION_BY_KEY[key];
   if(!def) return;
-  if(SECTION_DEFS.length <= 1){
-    showToast('At least one section must remain — add another section before deleting this one.', 'warning');
-    return;
-  }
   const store = workspace.sections[key];
   const studentCount = store ? store.students.length : 0;
+  const isLastSection = SECTION_DEFS.length <= 1;
   const dataWarning = studentCount > 0
     ? `This section has <b>${studentCount}</b> student record(s) with all of their test scores. `
     : '';
+  const lastSectionWarning = isLastSection
+    ? `This is the <b>only remaining section</b> — deleting it will leave no sections at all until a new one is added. `
+    : '';
   showConfirm(
     'Delete Section?',
-    `${dataWarning}Are you sure you want to permanently delete <b>${escapeHtml(def.label)}</b>? This cannot be undone (unless you have a saved workspace backup). This also deletes it from the cloud for everyone.`,
+    `${dataWarning}${lastSectionWarning}Are you sure you want to permanently delete <b>${escapeHtml(def.label)}</b>? This cannot be undone (unless you have a saved workspace backup). This also deletes it from the cloud for everyone.`,
     async ()=>{
       removeSectionDef(key);
       markDirty();
       populateSectionSelects();
-      document.getElementById('sectionSelect').value = currentSectionKey() || SECTION_DEFS[0].key;
+      // Deleting the last remaining section leaves SECTION_DEFS empty --
+      // SECTION_DEFS[0] would be undefined in that case, so this only
+      // falls back to it when a section genuinely still exists.
+      document.getElementById('sectionSelect').value = currentSectionKey() || (SECTION_DEFS[0] ? SECTION_DEFS[0].key : '');
       populateSubjectFilter();
       refreshAllUI();
 

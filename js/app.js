@@ -134,6 +134,7 @@ function registerCloudSectionDef({ key, sheet_name, subject_group, label }){
   SECTION_DEFS.push(def);
   SECTION_BY_KEY[key] = def;
   SHEETNAME_TO_KEY[normalizeSheetName(sheetName)] = key;
+  SHEETNAME_COMPACT_TO_KEY[compactSheetName(sheetName)] = key;
 }
 
 function addSectionDef(sheetName, group){
@@ -151,6 +152,7 @@ function addSectionDef(sheetName, group){
   SECTION_DEFS.push(def);
   SECTION_BY_KEY[key] = def;
   SHEETNAME_TO_KEY[normalized] = key;
+  SHEETNAME_COMPACT_TO_KEY[compactSheetName(sheetName)] = key;
   return def;
 }
 // Renames an existing section's display/sheet name in place (student and
@@ -171,6 +173,7 @@ function renameSectionDef(key, newName, newGroup){
   const existingKey = SHEETNAME_TO_KEY[normalized];
   if(existingKey && existingKey !== key) throw new Error(`A section named "${newName}" already exists.`);
   delete SHEETNAME_TO_KEY[normalizeSheetName(def.sheetName)];
+  delete SHEETNAME_COMPACT_TO_KEY[compactSheetName(def.sheetName)];
   def.sheetName = newName;
   if(newGroup){
     def.group = newGroup;
@@ -178,6 +181,7 @@ function renameSectionDef(key, newName, newGroup){
   }
   def.label = `${newName} — ${GROUP_LABELS[def.group]}`;
   SHEETNAME_TO_KEY[normalized] = key;
+  SHEETNAME_COMPACT_TO_KEY[compactSheetName(newName)] = key;
   if(typeof workspace !== 'undefined' && workspace){
     workspace.sectionRenames = workspace.sectionRenames || {};
     workspace.sectionRenames[key] = newName;
@@ -207,9 +211,11 @@ function applyPersistedSectionRenames(){
     const def = SECTION_BY_KEY[key];
     if(!def || def.sheetName === name) return;
     delete SHEETNAME_TO_KEY[normalizeSheetName(def.sheetName)];
+    delete SHEETNAME_COMPACT_TO_KEY[compactSheetName(def.sheetName)];
     def.sheetName = name;
     def.label = `${name} — ${GROUP_LABELS[def.group]}`;
     SHEETNAME_TO_KEY[normalizeSheetName(name)] = key;
+    SHEETNAME_COMPACT_TO_KEY[compactSheetName(name)] = key;
   });
 }
 // Removes a section definition (and, if a workspace already exists, its
@@ -221,6 +227,7 @@ function removeSectionDef(key){
   SECTION_DEFS.splice(idx, 1);
   delete SECTION_BY_KEY[key];
   delete SHEETNAME_TO_KEY[normalizeSheetName(def.sheetName)];
+  delete SHEETNAME_COMPACT_TO_KEY[compactSheetName(def.sheetName)];
   if(typeof workspace !== 'undefined' && workspace && workspace.sections) delete workspace.sections[key];
   return true;
 }

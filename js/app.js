@@ -841,6 +841,22 @@ let pendingImport = null; // holds parsed-but-unapplied result
 
 function cellIsNumber(v){ return typeof v === 'number' && !Number.isNaN(v); }
 
+// Returns the keyword list to match a subject's header cell against.
+// Known subjects (Physics, Chemistry, etc.) use the curated synonym list in
+// SUBJECT_KEYWORDS, which tolerates real-world header variations ("PHYSIC"
+// catches "Physics"/"PHY SICS"/etc.). A subject an admin typed into a custom
+// subject group that isn't in that curated list (e.g. "Statistics",
+// "Fine Arts") falls back to matching its own name directly -- otherwise it
+// would never be detected at all, regardless of what the Excel header
+// actually says. This is what was silently missing when a real "Statistics"
+// column failed to import earlier: SUBJECT_KEYWORDS.find() returned
+// undefined for anything outside the fixed 13-entry list, with no fallback.
+function keywordsForSubject(subj){
+  const known = SUBJECT_KEYWORDS.find(k=>k[0]===subj);
+  if(known) return known[1];
+  return [String(subj||'').toUpperCase()];
+}
+
 function parseSheetForSection(rows, def){
   const subjects = def.subjects;
   const warnings = [];
@@ -853,8 +869,8 @@ function parseSheetForSection(rows, def){
       if(typeof cell === 'string'){
         const up = cell.toUpperCase();
         for(const subj of subjects){
-          const kws = SUBJECT_KEYWORDS.find(k=>k[0]===subj);
-          if(kws && kws[1].some(kw=>up.includes(kw))){ matches++; break; }
+          const kws = keywordsForSubject(subj);
+          if(kws.some(kw=>up.includes(kw))){ matches++; break; }
         }
       }
     });
@@ -872,8 +888,8 @@ function parseSheetForSection(rows, def){
     if(typeof cell === 'string'){
       const up = cell.toUpperCase();
       for(const subj of subjects){
-        const kws = SUBJECT_KEYWORDS.find(k=>k[0]===subj);
-        if(kws && kws[1].some(kw=>up.includes(kw))){ hits.push({subject:subj, col:c}); break; }
+        const kws = keywordsForSubject(subj);
+        if(kws.some(kw=>up.includes(kw))){ hits.push({subject:subj, col:c}); break; }
       }
     }
   });
